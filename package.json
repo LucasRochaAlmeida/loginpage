@@ -1,0 +1,16 @@
+{
+  "name": "pag_login",
+  "version": "1.0.0",
+  "description": "testando pagina de login",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "lucas",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0",
+    "express-session": "^1.18.1"
+  }
+}
