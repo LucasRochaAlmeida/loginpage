@@ -3,9 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Dashboard</title>
+    <style>
+        table, th, td {
+            border: 1px solid #000;
+            border-collapse: collapse;
+            padding: 8px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>olá</h1>
+    <form id="personForm">
+        <label>
+            Nome:
+            <input type="text" id="nome" required>
+        </label>
+        <label>
+            Data de Nascimento:
+            <input type="date" id="dataNascimento" required>
+        </label>
+        <label>
+            Telefone:
+            <input type="tel" id="telefone" required>
+        </label>
+        <button type="submit">Adicionar</button>
+    </form>
+    <table id="peopleTable">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Data de Nascimento</th>
+                <th>Telefone</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Linhas serão adicionadas aqui -->
+        </tbody>
+    </table>
+    <script>
+        const form = document.getElementById('personForm');
+        const tableBody = document.querySelector('#peopleTable tbody');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const nome = document.getElementById('nome').value;
+            const dataNascimento = document.getElementById('dataNascimento').value;
+            const telefone = document.getElementById('telefone').value;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${nome}</td>
+                <td>${dataNascimento}</td>
+                <td>${telefone}</td>
+                <td>
+                    <button type="button" class="edit-btn">Editar</button>
+                    <button type="button" class="delete-btn">Excluir</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+
+            // Botão de exclusão
+            row.querySelector('.delete-btn').addEventListener('click', function() {
+                row.remove();
+            });
+
+            // Botão de edição
+            row.querySelector('.edit-btn').addEventListener('click', function() {
+                if (this.textContent === 'Editar') {
+                    // Torna as células editáveis
+                    for (let i = 0; i < 3; i++) {
+                        const cell = row.children[i];
+                        const input = document.createElement('input');
+                        input.value = cell.textContent;
+                        if (i === 1) input.type = 'date';
+                        else if (i === 2) input.type = 'tel';
+                        else input.type = 'text';
+                        cell.textContent = '';
+                        cell.appendChild(input);
+                    }
+                    this.textContent = 'Salvar';
+                } else {
+                    // Salva as alterações
+                    for (let i = 0; i < 3; i++) {
+                        const cell = row.children[i];
+                        const input = cell.querySelector('input');
+                        cell.textContent = input.value;
+                    }
+                    this.textContent = 'Editar';
+                }
+            });
+
+            form.reset();
+        });
+    </script>
 </body>
 </html>
