@@ -4,47 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Página de Login</title>
-    <style>
-        body {
-            display: flex;
-            height: 100vh;
-            justify-content: center;
-            align-items: center;
-            background: #f0f0f0;
-            margin: 0;
-        }
-        .login-container {
-            background: #fff;
-            padding: 32px 24px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            min-width: 300px;
-        }
-        .login-container h2 {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .login-container input {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .login-container button {
-            width: 100%;
-            padding: 10px;
-            background: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .login-container button:hover {
-            background: #0056b3;
-        }
-    </style>
+    <link rel="stylesheet" href="login.css">
 </head>
 <body>
     <div class="login-container">
@@ -54,7 +14,19 @@
             <input type="password" name="senha" id="senha" placeholder="Senha" required>
             <button type="submit">Entrar</button>
         </form>
+        <button id="showRegisterBtn" type="button">Criar Usuário</button>
+        <form id="registerForm" method="POST" action="/register" style="display:none; margin-top:20px;">
+            <input type="text" name="novoUsuario" id="novoUsuario" placeholder="Novo Usuário" required>
+            <input type="password" name="novaSenha" id="novaSenha" placeholder="Nova Senha" required>
+            <button type="submit">Cadastrar</button>
+        </form>
     </div>
-    <!-- Remova ou comente o <script> de validação JS, pois agora a validação é no backend -->
+    <script>
+        const showRegisterBtn = document.getElementById('showRegisterBtn');
+        const registerForm = document.getElementById('registerForm');
+        showRegisterBtn.addEventListener('click', () => {
+            registerForm.style.display = registerForm.style.display === 'none' ? 'block' : 'none';
+        });
+    </script>
 </body>
 </html>
