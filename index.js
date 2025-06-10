@@ -18,7 +18,7 @@ app.use(session({
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: 'Xk2ag47HQ4luca$',
+    password: '',
     database: 'loginpage'
 });
 
