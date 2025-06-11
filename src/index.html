@@ -18,6 +18,7 @@
         <form id="registerForm" method="POST" action="/register" style="display:none; margin-top:20px;">
             <input type="text" name="novoUsuario" id="novoUsuario" placeholder="Novo Usuário" required>
             <input type="password" name="novaSenha" id="novaSenha" placeholder="Nova Senha" required>
+            <input type="text" name="cpf" id="cpf" placeholder="CPF" required pattern="\d{3}\.\d{3}\.\d{3}-\d{2}" title="Formato: 111.111.111-11">
             <button type="submit">Cadastrar</button>
         </form>
     </div>
@@ -27,6 +28,14 @@
         showRegisterBtn.addEventListener('click', () => {
             registerForm.style.display = registerForm.style.display === 'none' ? 'block' : 'none';
         });
+
+        document.getElementById('cpf').addEventListener('input', function(e) {
+    let v = e.target.value.replace(/\D/g, '');
+    if (v.length > 3) v = v.replace(/^(\d{3})(\d)/, '$1.$2');
+    if (v.length > 7) v = v.replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
+    if (v.length > 11) v = v.replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4');
+    e.target.value = v;
+});
     </script>
 </body>
 </html>
