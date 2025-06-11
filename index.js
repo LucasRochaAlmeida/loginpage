@@ -18,7 +18,7 @@ app.use(session({
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: '',
+    password: 'Xk2ag47HQ4luca$',
     database: 'loginpage'
 });
 
@@ -27,7 +27,8 @@ db.query(`
     CREATE TABLE IF NOT EXISTS usuarios (
         id INT AUTO_INCREMENT PRIMARY KEY,
         usuario VARCHAR(50) UNIQUE,
-        senha VARCHAR(255)
+        senha VARCHAR(255),
+        cpf VARCHAR(255)
     )
 `);
 
@@ -36,26 +37,32 @@ app.get('/', (req, res) => {
     res.sendFile('index.html', { root: path.join(__dirname, 'src') });
 });
 
-// Cadastro de usuário com bcrypt
+// Cadastro de usuário com bcrypt e CPF criptografado
 app.post('/register', async (req, res) => {
-    const { novoUsuario, novaSenha } = req.body;
+    const { novoUsuario, novaSenha, cpf } = req.body;
     try {
         // Verifica se o usuário já existe
         db.query('SELECT * FROM usuarios WHERE usuario = ?', [novoUsuario], async (err, results) => {
             if (results && results.length > 0) {
-                return res.send('<script>alert("Usuário já existe!");window.location="/";</script>');
+                return res.send('<script>alert("Usuário já existe!");window.location=\"/\";</script>');
             }
-            // Se não existe, cadastra normalmente
-            const hash = await bcrypt.hash(novaSenha, 10);
-            db.query('INSERT INTO usuarios (usuario, senha) VALUES (?, ?)', [novoUsuario, hash], (err) => {
-                if (err) {
-                    return res.send('<script>alert("Erro no cadastro.");window.location="/";</script>');
+            // Verifica se o CPF já existe
+            db.query('SELECT * FROM usuarios WHERE cpf = ?', [cpf], async (err, results) => {
+                if (results && results.length > 0) {
+                    return res.send('<script>alert("CPF já cadastrado!");window.location=\"/\";</script>');
                 }
-                res.send('<script>alert("Usuário cadastrado com sucesso!");window.location="/";</script>');
+                // Criptografa senha, mas salva CPF em texto
+                const hashSenha = await bcrypt.hash(novaSenha, 10);
+                db.query('INSERT INTO usuarios (usuario, senha, cpf) VALUES (?, ?, ?)', [novoUsuario, hashSenha, cpf], (err) => {
+                    if (err) {
+                        return res.send('<script>alert("Erro no cadastro.");window.location=\"/\";</script>');
+                    }
+                    res.send('<script>alert("Usuário cadastrado com sucesso!");window.location=\"/\";</script>');
+                });
             });
         });
     } catch (error) {
-        res.send('<script>alert("Erro ao cadastrar usuário.");window.location="/";</script>');
+        res.send('<script>alert("Erro ao cadastrar usuário.");window.location=\"/\";</script>');
     }
 });
 
