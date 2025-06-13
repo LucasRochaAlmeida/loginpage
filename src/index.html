@@ -19,6 +19,10 @@
             <input type="text" name="novoUsuario" id="novoUsuario" placeholder="Novo Usuário" required>
             <input type="password" name="novaSenha" id="novaSenha" placeholder="Nova Senha" required>
             <input type="text" name="cpf" id="cpf" placeholder="CPF" required pattern="\d{3}\.\d{3}\.\d{3}-\d{2}" title="Formato: 111.111.111-11">
+            <select name="tipo" id="tipo" required>
+                <option value="comum" selected>Usuário Comum</option>
+                <option value="admin">Administrador</option>
+            </select>
             <button type="submit">Cadastrar</button>
         </form>
     </div>

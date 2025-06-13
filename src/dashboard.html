@@ -1,95 +1,132 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Agendamento</title>
     <link rel="stylesheet" href="dashboard.css">
+    <style>
+        table { margin-top: 24px; }
+        td, th { padding: 10px 20px; text-align: center; }
+        .reserved { background: #ccc; color: #888; }
+        .available { background: #e0ffe0; cursor: pointer; }
+    </style>
 </head>
 <body>
-    <form id="personForm">
-        <label>
-            Nome:
-            <input type="text" id="nome" required>
-        </label>
-        <label>
-            Data de Nascimento:
-            <input type="date" id="dataNascimento" required>
-        </label>
-        <label>
-            Telefone:
-            <input type="tel" id="telefone" required>
-        </label>
-        <button type="submit">Adicionar</button>
-    </form>
-    <table id="peopleTable">
+    <script>
+        window.tipoUsuario = 'TIPO_USUARIO'; // O backend deve substituir por admin ou comum
+    </script>
+    <h2>Agendamento de Horários</h2>
+    <table id="scheduleTable">
         <thead>
             <tr>
+                <th>Horário</th>
                 <th>Nome</th>
-                <th>Data de Nascimento</th>
                 <th>Telefone</th>
-                <th>Ações</th>
+                <th id="acoesTh"></th>
             </tr>
         </thead>
         <tbody>
-            <!-- Linhas serão adicionadas aqui -->
+            <!-- Horários serão inseridos aqui -->
         </tbody>
     </table>
+
+    <!-- Modal para agendamento -->
+    <div id="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+        <form id="bookingForm" style="background:#fff; padding:24px; border-radius:8px; display:flex; flex-direction:column; gap:12px; min-width:250px;">
+            <h3 id="modalHour"></h3>
+            <input type="text" id="nome" placeholder="Seu nome" required>
+            <input type="tel" id="telefone" placeholder="Seu telefone" required>
+            <button type="submit">Agendar</button>
+            <button type="button" onclick="closeModal()" style="background:#ccc; color:#222;">Cancelar</button>
+        </form>
+    </div>
+
     <script>
-        const form = document.getElementById('personForm');
-        const tableBody = document.querySelector('#peopleTable tbody');
+        const startHour = 9, endHour = 20;
+        const tbody = document.querySelector('#scheduleTable tbody');
+        const schedule = [];
+        for (let h = startHour; h < endHour; h++) {
+            schedule.push(`${String(h).padStart(2, '0')}:00`);
+            schedule.push(`${String(h).padStart(2, '0')}:30`);
+        }
+        schedule.push(`${endHour}:00`);
 
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            const nome = document.getElementById('nome').value;
-            const dataNascimento = document.getElementById('dataNascimento').value;
-            const telefone = document.getElementById('telefone').value;
-
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${nome}</td>
-                <td>${dataNascimento}</td>
-                <td>${telefone}</td>
-                <td>
-                    <button type="button" class="edit-btn">Editar</button>
-                    <button type="button" class="delete-btn">Excluir</button>
-                </td>
-            `;
-            tableBody.appendChild(row);
-
-            // Botão de exclusão
-            row.querySelector('.delete-btn').addEventListener('click', function() {
-                row.remove();
+        // Carrega agendamentos do backend
+        async function carregarAgendamentos() {
+            const res = await fetch('/api/agendamentos');
+            const agendamentos = await res.json();
+            const agendaMap = {};
+            agendamentos.forEach(a => {
+                agendaMap[a.horario] = a;
             });
+            renderTable(agendaMap);
+        }
 
-            // Botão de edição
-            row.querySelector('.edit-btn').addEventListener('click', function() {
-                if (this.textContent === 'Editar') {
-                    // Torna as células editáveis
-                    for (let i = 0; i < 3; i++) {
-                        const cell = row.children[i];
-                        const input = document.createElement('input');
-                        input.value = cell.textContent;
-                        if (i === 1) input.type = 'date';
-                        else if (i === 2) input.type = 'tel';
-                        else input.type = 'text';
-                        cell.textContent = '';
-                        cell.appendChild(input);
-                    }
-                    this.textContent = 'Salvar';
-                } else {
-                    // Salva as alterações
-                    for (let i = 0; i < 3; i++) {
-                        const cell = row.children[i];
-                        const input = cell.querySelector('input');
-                        cell.textContent = input.value;
-                    }
-                    this.textContent = 'Editar';
+        // Renderiza a tabela
+        function renderTable(agendaMap) {
+            tbody.innerHTML = '';
+            schedule.forEach(hour => {
+                const ag = agendaMap[hour];
+                const reservado = ag && ag.nome;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="hour ${reservado ? 'reserved' : 'available'}" data-hour="${hour}">${hour}</td>
+                    <td class="nome">${reservado ? ag.nome : ''}</td>
+                    <td class="telefone">${reservado ? ag.telefone : ''}</td>
+                    ${window.tipoUsuario === 'admin' ? '<td>' + (reservado ? '<button class="delete-btn">Excluir</button>' : '') + '</td>' : ''}
+                `;
+                tbody.appendChild(row);
+
+                // Clique para agendar (apenas se disponível)
+                if (!reservado) {
+                    row.querySelector('.hour').addEventListener('click', () => {
+                        selectedHour = hour;
+                        document.getElementById('modalHour').textContent = `Agendar para ${hour}`;
+                        document.getElementById('nome').value = '';
+                        document.getElementById('telefone').value = '';
+                        document.getElementById('modal').style.display = 'flex';
+                    });
+                }
+
+                // Exclusão (apenas admin)
+                if (window.tipoUsuario === 'admin' && reservado) {
+                    row.querySelector('.delete-btn').addEventListener('click', async () => {
+                        await fetch('/api/liberar', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ horario: hour })
+                        });
+                        carregarAgendamentos();
+                    });
                 }
             });
+        }
 
-            form.reset();
+        // Modal de agendamento
+        let selectedHour = null;
+        document.getElementById('bookingForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const nome = document.getElementById('nome').value;
+            const telefone = document.getElementById('telefone').value;
+            await fetch('/api/agendar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ horario: selectedHour, nome, telefone })
+            });
+            document.getElementById('modal').style.display = 'none';
+            carregarAgendamentos();
         });
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // Ajusta o cabeçalho de ações
+        document.getElementById('acoesTh').textContent = window.tipoUsuario === 'admin' ? 'Ações' : '';
+
+        // Inicializa
+        carregarAgendamentos();
     </script>
 </body>
 </html>
